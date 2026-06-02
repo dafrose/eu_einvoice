@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.docstatus import DocStatus
 from frappe.model.document import Document
+from eu_einvoice.european_e_invoice.custom.sales_invoice_annex import sync_sales_invoice_annex_field
 
 
 class EInvoiceSettings(Document):
@@ -21,6 +22,7 @@ class EInvoiceSettings(Document):
 		auto_name_format_for_xml_file: DF.Data | None
 		error_action_on_save: DF.Literal["", "Warning Message", "Error Message"]
 		error_action_on_submit: DF.Literal["", "Warning Message", "Error Message"]
+		multi_annex_embed_enabled: DF.Check
 		sales_invoice_number_field: DF.Autocomplete | None
 		validate_sales_invoice_on_save: DF.Check
 		validate_sales_invoice_on_submit: DF.Check
@@ -38,6 +40,10 @@ class EInvoiceSettings(Document):
 		# Only validate field if both auto-attach is enabled AND a field is specified
 		if self.auto_attach_xml and self.attach_field_for_xml_file:
 			self._validate_attach_field()
+
+	def on_update(self):
+		if self.has_value_changed("multi_annex_embed_enabled"):
+			sync_sales_invoice_annex_field(bool(self.multi_annex_embed_enabled))
 
 	def _validate_attach_field(self):
 		"""Validate that the selected attachment field exists and is of type Attach."""

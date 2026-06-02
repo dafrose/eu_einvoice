@@ -1,4 +1,19 @@
 frappe.ui.form.on("Sales Invoice", {
+	setup(frm) {
+		if (frm.fields_dict.einvoice_annexes) {
+			frm.set_query("file", "einvoice_annexes", function () {
+				if (frm.is_new()) {
+					return { filters: { name: ["in", []] } };
+				}
+				return {
+					filters: {
+						attached_to_doctype: frm.doctype,
+						attached_to_name: frm.doc.name,
+					},
+				};
+			});
+		}
+	},
 	refresh: function (frm) {
 		frm.trigger("add_einvoice_button");
 
