@@ -20,7 +20,9 @@
   "auto_attach_xml",
   "attach_field_for_xml_file",
   "file_attachments_section",
-  "multi_annex_embed_enabled"
+  "multi_annex_embed_enabled",
+  "column_break_mjfv",
+  "annex_validation_by_content_enabled"
  ],
  "fields": [
   {
@@ -116,13 +118,25 @@
    "fieldname": "multi_annex_embed_enabled",
    "fieldtype": "Check",
    "label": "Enable Multiple Attachment Embedding into Invoice PDF/XML"
+  },
+  {
+   "fieldname": "column_break_mjfv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.multi_annex_embed_enabled",
+   "description": "By default, attachments are only validated by matching the file extension. Enable to also validate filetype by content which is more computationally expensive, but guards against mislabelled file extensions.",
+   "fieldname": "annex_validation_by_content_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Attachment Filetype Validation by File Content"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-06-02 16:12:40.882076",
+ "modified": "2026-06-03 12:35:27.828476",
  "modified_by": "Administrator",
  "module": "European e-Invoice",
  "name": "E Invoice Settings",

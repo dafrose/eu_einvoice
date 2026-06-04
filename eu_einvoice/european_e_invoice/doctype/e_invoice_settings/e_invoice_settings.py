@@ -17,6 +17,7 @@ class EInvoiceSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		annex_validation_by_content_enabled: DF.Check
 		attach_field_for_xml_file: DF.Autocomplete | None
 		auto_attach_xml: DF.Check
 		auto_name_format_for_xml_file: DF.Data | None
@@ -34,6 +35,8 @@ class EInvoiceSettings(Document):
 			self.error_action_on_save = ""
 		if not self.validate_sales_invoice_on_submit:
 			self.error_action_on_submit = ""
+		if not self.multi_annex_embed_enabled:
+			self.annex_validation_by_content_enabled = 0
 
 	def validate(self):
 		"""Validate E Invoice Settings before save."""
@@ -44,6 +47,13 @@ class EInvoiceSettings(Document):
 	def on_update(self):
 		if self.has_value_changed("multi_annex_embed_enabled"):
 			sync_sales_invoice_annex_field(bool(self.multi_annex_embed_enabled))
+			if not self.multi_annex_embed_enabled:
+				frappe.db.set_single_value(
+					"E Invoice Settings",
+					"annex_validation_by_content_enabled",
+					0,
+					update_modified=False,
+				)
 
 	def _validate_attach_field(self):
 		"""Validate that the selected attachment field exists and is of type Attach."""

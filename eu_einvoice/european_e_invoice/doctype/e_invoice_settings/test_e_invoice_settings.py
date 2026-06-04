@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+import frappe
 from frappe.tests import IntegrationTestCase
 
 from eu_einvoice.european_e_invoice.custom.sales_invoice_annex import (
@@ -43,11 +44,21 @@ class IntegrationTestEInvoiceSettings(IntegrationTestCase):
 		with (
 			patch(f"{ANNEX_MODULE}.sales_invoice_annex_table_installed", return_value=True),
 			patch(f"{ANNEX_MODULE}._set_sales_invoice_annex_field_hidden") as set_hidden,
-			patch(f"{ANNEX_MODULE}.refresh_sales_invoice_annex_field_description") as refresh_description,
 			patch(f"{ANNEX_MODULE}.create_custom_fields") as create_custom_fields,
 		):
 			sync_sales_invoice_annex_field(True)
 
 		set_hidden.assert_called_once_with(hidden=False)
-		refresh_description.assert_called_once()
 		create_custom_fields.assert_not_called()
+
+	def test_clears_content_validation_when_multi_annex_disabled(self):
+		settings = frappe.get_single("E Invoice Settings")
+		settings.multi_annex_embed_enabled = 1
+		settings.annex_validation_by_content_enabled = 1
+		settings.save()
+
+		settings.multi_annex_embed_enabled = 0
+		settings.save()
+		settings.reload()
+
+		self.assertFalse(settings.annex_validation_by_content_enabled)

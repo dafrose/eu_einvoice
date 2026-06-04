@@ -1,0 +1,74 @@
+- extension: .pdf
+  filename: valid.pdf
+  mimetype: application/pdf
+  content_bytes_b64: JVBERi0xLjQK
+  accept_extension: true
+  accept_validation: true
+
+- extension: .png
+  filename: valid.png
+  mimetype: image/png
+  content_bytes_b64: iVBORw0KGgo=
+  accept_extension: true
+  accept_validation: true
+  test_integration: true
+
+- extension: .jpg
+  filename: valid.jpg
+  mimetype: image/jpeg
+  content_bytes_b64: /9j/4AAQSkZJRgAB
+  accept_extension: true
+  accept_validation: true
+
+- extension: .jpeg
+  filename: valid.jpeg
+  mimetype: image/jpeg
+  content_bytes_b64: /9j/4AAQSkZJRgAB
+  accept_extension: true
+  accept_validation: true
+
+- extension: .csv
+  filename: valid.csv
+  mimetype: text/csv
+  content_bytes_b64: Y29sMSxjb2wyCjEsMgo=
+  accept_extension: true
+  accept_validation: true
+
+- extension: .xlsx
+  filename: valid.xlsx
+  mimetype: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+  content_bytes_b64: UEsDBBQAAAAAAIJ9xFzOnpgTCwAAAAsAAAAPAAAAeGwvd29ya2Jvb2sueG1sPHdvcmtib29rLz5QSwECFAMUAAAAAACCfcRczp6YEwsAAAALAAAADwAAAAAAAAAAAAAAgAEAAAAAeGwvd29ya2Jvb2sueG1sUEsFBgAAAAABAAEAPQAAADgAAAAAAA==
+  accept_extension: true
+  accept_validation: true
+
+- extension: .ods
+  filename: valid.ods
+  mimetype: application/vnd.oasis.opendocument.spreadsheet
+  content_bytes_b64: UEsDBBQAAAAAAIJ9xFyFbDmKLgAAAC4AAAAIAAAAbWltZXR5cGVhcHBsaWNhdGlvbi92bmQub2FzaXMub3BlbmRvY3VtZW50LnNwcmVhZHNoZWV0UEsBAhQDFAAAAAAAgn3EXIVsOYouAAAALgAAAAgAAAAAAAAAAAAAAIABAAAAAG1pbWV0eXBlUEsFBgAAAAABAAEANgAAAFQAAAAAAA==
+  accept_extension: true
+  accept_validation: true
+
+- extension: .txt
+  filename: forbidden.txt
+  accept_extension: false
+  test_integration: true
+
+- extension: .xml
+  filename: forbidden.xml
+  accept_extension: false
+
+- extension: .pdf
+  filename: mislabelled.pdf
+  mimetype: image/png
+  content_bytes_b64: iVBORw0KGgo=
+  accept_extension: true
+  accept_validation: false
+  expect_error_contains: allowed file extensions
+
+- extension: .csv
+  filename: xml_as.csv
+  mimetype: application/xml
+  content_bytes_b64: PD94bWwgdmVyc2lvbj0iMS4wIj8+PHJvb3QvPg==
+  accept_extension: true
+  accept_validation: false
+  expect_error_contains: allowed file extensions

@@ -7,11 +7,12 @@ import frappe
 from frappe import _
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
+from eu_einvoice.annex.validation import (
+	get_annex_allowed_extensions_text,
+)
+
 SALES_INVOICE_ANNEX_TABLE_FIELD = "einvoice_annexes"
 E_INVOICE_ANNEX_ROW_DOCTYPE = "E Invoice Annex Row"
-# XRechnung §8.2 user annex types (not invoice XML)
-ANNEX_ALLOWED_EXTENSIONS = ("pdf", "png", "jpg", "jpeg", "csv", "xlsx", "ods")
-ANNEX_ALLOWED_EXTENSIONS_TEXT = ", ".join(ANNEX_ALLOWED_EXTENSIONS)
 
 
 def sales_invoice_annex_table_installed() -> bool:
@@ -33,7 +34,7 @@ def get_sales_invoice_annex_table_field_description() -> str:
 		"&lt;p&gt;{{{{ row.display_name }}}}&lt;/p&gt;"
 		"{{% endfor %}}"
 		"{{% endif %}}</pre>"
-	).format(extensions=ANNEX_ALLOWED_EXTENSIONS_TEXT)
+	).format(extensions=get_annex_allowed_extensions_text())
 
 
 def get_sales_invoice_annex_custom_fields() -> dict:
