@@ -21,10 +21,12 @@ from frappe.model.naming import parse_naming_series
 from frappe.utils import cstr
 from frappe.utils.data import date_diff, flt, getdate, to_markdown
 
-from eu_einvoice.common_codes import CommonCodeRetriever
-from eu_einvoice.annex.validation import (
-	validate_sales_invoice_annex_files,
+from eu_einvoice.annex.sales_invoice import (
+	deduplicate_annex_rows,
+	migrate_embedded_document_to_annexes,
 )
+from eu_einvoice.annex.validation import validate_annex_file
+from eu_einvoice.common_codes import CommonCodeRetriever
 from eu_einvoice.schematron import get_validation_errors
 from eu_einvoice.switzerland import is_valid_swiss_vat_id, normalize_swiss_vat_id
 from eu_einvoice.utils import EInvoiceProfile, get_drafthorse_schema, get_guideline
@@ -760,7 +762,6 @@ def validate_vat_id(vat_id: str) -> str:
 
 def validate_doc(doc, event):
 	"""Validate the Sales Invoice form."""
-	validate_sales_invoice_annex_files(doc)
 
 	for tax_row in doc.taxes:
 		if tax_row.charge_type == "On Item Quantity":
@@ -825,6 +826,14 @@ def validate_doc(doc, event):
 				title=_("E Invoice is not correct"),
 				raise_exception=settings.should_raise_exception(doc.docstatus),
 			)
+
+	if settings.multi_annex_embed_enabled:
+		if doc.einvoice_embedded_document:
+			migrate_embedded_document_to_annexes(doc)
+		if doc.einvoice_annexes:
+			deduplicate_annex_rows(doc)
+			for row in doc.einvoice_annexes:
+				validate_annex_file(row.file, row_index=row.idx)
 
 
 def validate_einvoice(doc: SalesInvoice):

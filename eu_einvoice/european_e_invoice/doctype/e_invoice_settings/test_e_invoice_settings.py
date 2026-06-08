@@ -22,33 +22,33 @@ class IntegrationTestEInvoiceSettings(IntegrationTestCase):
 			patch(f"{ANNEX_MODULE}.sales_invoice_annex_table_installed", return_value=False),
 			patch(f"{ANNEX_MODULE}.frappe.db.exists", return_value=True),
 			patch(f"{ANNEX_MODULE}.create_custom_fields") as create_custom_fields,
-			patch(f"{ANNEX_MODULE}._set_sales_invoice_annex_field_hidden") as set_hidden,
+			patch(f"{ANNEX_MODULE}._set_multi_annex_field_visibility") as set_visibility,
 		):
 			sync_sales_invoice_annex_field(True)
 
 		create_custom_fields.assert_called_once_with(get_sales_invoice_annex_custom_fields())
-		set_hidden.assert_not_called()
+		set_visibility.assert_called_once_with(enabled=True)
 
 	def test_hides_field_when_toggled_off_again(self):
 		with (
 			patch(f"{ANNEX_MODULE}.sales_invoice_annex_table_installed", return_value=True),
-			patch(f"{ANNEX_MODULE}._set_sales_invoice_annex_field_hidden") as set_hidden,
+			patch(f"{ANNEX_MODULE}._set_multi_annex_field_visibility") as set_visibility,
 			patch(f"{ANNEX_MODULE}.create_custom_fields") as create_custom_fields,
 		):
 			sync_sales_invoice_annex_field(False)
 
-		set_hidden.assert_called_once_with(hidden=True)
+		set_visibility.assert_called_once_with(enabled=False)
 		create_custom_fields.assert_not_called()
 
 	def test_unhides_field_when_toggled_on_again(self):
 		with (
 			patch(f"{ANNEX_MODULE}.sales_invoice_annex_table_installed", return_value=True),
-			patch(f"{ANNEX_MODULE}._set_sales_invoice_annex_field_hidden") as set_hidden,
+			patch(f"{ANNEX_MODULE}._set_multi_annex_field_visibility") as set_visibility,
 			patch(f"{ANNEX_MODULE}.create_custom_fields") as create_custom_fields,
 		):
 			sync_sales_invoice_annex_field(True)
 
-		set_hidden.assert_called_once_with(hidden=False)
+		set_visibility.assert_called_once_with(enabled=True)
 		create_custom_fields.assert_not_called()
 
 	def test_clears_content_validation_when_multi_annex_disabled(self):

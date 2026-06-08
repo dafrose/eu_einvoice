@@ -15,8 +15,9 @@ class EInvoiceAnnexRow(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		display_name: DF.Data
+		display_name: DF.Data | None
 		file: DF.Link
+		file_name: DF.Data | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

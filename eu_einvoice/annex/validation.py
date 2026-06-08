@@ -212,19 +212,3 @@ def _throw_annex_extension_not_allowed(*, row_index: int | None = None) -> None:
 			allowed=get_annex_allowed_extensions_text(),
 		)
 	)
-
-
-def validate_sales_invoice_annex_files(doc) -> None:
-	"""Validate all **E Invoice Annex Row** files on a **Sales Invoice** before save.
-
-	Params:
-	    doc: **Sales Invoice** document (or dict with ``einvoice_annexes`` child rows).
-
-	Raises:
-	    frappe.ValidationError: When any linked annex file fails ``validate_annex_file``.
-	"""
-	rows = doc.get("einvoice_annexes") or []
-	for row in rows:
-		if not row.file:
-			continue
-		validate_annex_file(row.file, row_index=row.idx)
