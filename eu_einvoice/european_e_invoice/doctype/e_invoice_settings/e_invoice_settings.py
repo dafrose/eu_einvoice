@@ -40,20 +40,24 @@ class EInvoiceSettings(Document):
 
 	def validate(self):
 		"""Validate E Invoice Settings before save."""
+		if self.has_value_changed("multi_annex_embed_enabled"):
+			previous = frappe.db.get_single_value(
+				"E Invoice Settings", "multi_annex_embed_enabled"
+			)
+			if previous and not self.multi_annex_embed_enabled:
+				frappe.throw(_("Multi-annex embed cannot be disabled once enabled."))
+
 		# Only validate field if both auto-attach is enabled AND a field is specified
 		if self.auto_attach_xml and self.attach_field_for_xml_file:
 			self._validate_attach_field()
 
 	def on_update(self):
-		if self.has_value_changed("multi_annex_embed_enabled"):
-			sync_sales_invoice_annex_field(bool(self.multi_annex_embed_enabled))
-			if not self.multi_annex_embed_enabled:
-				frappe.db.set_single_value(
-					"E Invoice Settings",
-					"annex_validation_by_content_enabled",
-					0,
-					update_modified=False,
-				)
+		if self.has_value_changed("multi_annex_embed_enabled") and self.multi_annex_embed_enabled:
+			sync_sales_invoice_annex_field(True)
+			frappe.enqueue(
+				"eu_einvoice.annex.migrate_legacy.migrate_all_legacy_embedded_documents",
+				queue="long",
+			)
 
 	def _validate_attach_field(self):
 		"""Validate that the selected attachment field exists and is of type Attach."""

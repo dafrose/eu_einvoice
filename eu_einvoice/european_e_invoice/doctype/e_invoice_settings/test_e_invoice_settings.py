@@ -51,14 +51,27 @@ class IntegrationTestEInvoiceSettings(IntegrationTestCase):
 		set_visibility.assert_called_once_with(enabled=True)
 		create_custom_fields.assert_not_called()
 
-	def test_clears_content_validation_when_multi_annex_disabled(self):
+	def test_cannot_disable_multi_annex_once_enabled(self):
 		settings = frappe.get_single("E Invoice Settings")
+		previous = bool(settings.multi_annex_embed_enabled)
 		settings.multi_annex_embed_enabled = 1
-		settings.annex_validation_by_content_enabled = 1
 		settings.save()
 
 		settings.multi_annex_embed_enabled = 0
-		settings.save()
-		settings.reload()
+		with self.assertRaises(frappe.ValidationError):
+			settings.save()
 
-		self.assertFalse(settings.annex_validation_by_content_enabled)
+		settings.reload()
+		self.assertTrue(settings.multi_annex_embed_enabled)
+
+		field = frappe.get_meta("E Invoice Settings").get_field("multi_annex_embed_enabled")
+		self.assertEqual(field.read_only_depends_on, "eval:doc.multi_annex_embed_enabled")
+
+		self.addCleanup(
+			lambda: frappe.db.set_single_value(
+				"E Invoice Settings",
+				"multi_annex_embed_enabled",
+				int(previous),
+				update_modified=False,
+			)
+		)

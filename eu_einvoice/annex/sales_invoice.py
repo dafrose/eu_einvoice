@@ -8,7 +8,7 @@ from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 
 
-def migrate_embedded_document_to_annexes(doc) -> bool:
+def migrate_embedded_document_to_annexes(doc, *, msgprint: bool = True) -> bool:
 	"""Move a legacy ``einvoice_embedded_document`` value into ``einvoice_annexes``.
 
 	Caller must enable multi-annex embed and ensure ``einvoice_embedded_document`` is set.
@@ -19,20 +19,20 @@ def migrate_embedded_document_to_annexes(doc) -> bool:
 
 	file = find_file_by_url(doc.einvoice_embedded_document)
 	if not file:
-		doc.einvoice_embedded_document = None
-		return False
+		frappe.throw(_("Annex file not found: {0}").format(doc.einvoice_embedded_document))
 
 	doc.append("einvoice_annexes", {"file": file.name})
 	doc.einvoice_embedded_document = None
 
-	frappe.msgprint(
-		_(
-			"The embedded document was moved to the E-Invoice annex table. "
-			"It will be embedded from the annex rows on submit."
-		),
-		alert=True,
-		indicator="orange",
-	)
+	if msgprint:
+		frappe.msgprint(
+			_(
+				"The embedded document was moved to the E-Invoice annex table. "
+				"It will be embedded from the annex rows on submit."
+			),
+			alert=True,
+			indicator="orange",
+		)
 	return True
 
 

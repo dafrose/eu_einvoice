@@ -158,7 +158,11 @@ def get_custom_fields():
 				"insert_after": "einvoice_profile",
 				"fieldtype": "Attach",
 				"depends_on": "einvoice_profile",
-				"description": _("Additional supporting document to be embedded in the e-invoice file."),
+				"description": _(
+					"Legacy single-annex attachment field. Enable "
+					"Multiple Attachment Embedding in E Invoice Settings "
+					"to use the Embedded Documents table for one or more annexes."
+				),
 			},
 			{
 				"fieldname": "einvoice_is_correct",

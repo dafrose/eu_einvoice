@@ -7,6 +7,22 @@ frappe.ui.form.on("E Invoice Settings", {
 		frm.trigger("set_auto_attach_options");
 	},
 
+	multi_annex_embed_enabled(frm) {
+		if (!frm.doc.multi_annex_embed_enabled) {
+			return;
+		}
+
+		frm.set_value("multi_annex_embed_enabled", 0);
+
+		frappe.confirm(
+			__(
+				"Enabling multi-annex embed will permanently migrate every legacy embedded document on all Sales Invoices into the new annex table, hide the legacy attach field, and cannot be disabled again. Continue?"
+			),
+			() => frm.set_value("multi_annex_embed_enabled", 1),
+			() => {}
+		);
+	},
+
 	async set_auto_attach_options(frm) {
 		const options = await get_autocomplete_options("Sales Invoice", ["Attach"]);
 		frm.fields_dict.attach_field_for_xml_file.set_data(options);

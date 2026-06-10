@@ -114,10 +114,11 @@
   },
   {
    "default": "0",
-   "description": "When enabled, users can add multiple extra files on <b>Sales Invoice</b> to embed as PDF/A-3 annexes and as supporting documents  in the e-invoice XML.<br>\nThis adds an additional child table to Sales Invoice which <b>persists</b> in the database, even if the features is disabled again.",
+   "description": "When enabled, users can add multiple extra files on <b>Sales Invoice</b> to embed as PDF/A-3 annexes and as supporting documents in the e-invoice XML.<br>\nThis adds an additional child table to Sales Invoice and <b>cannot be disabled</b> once enabled.",
    "fieldname": "multi_annex_embed_enabled",
    "fieldtype": "Check",
-   "label": "Enable Multiple Attachment Embedding into Invoice PDF/XML"
+   "label": "Enable Multiple Attachment Embedding into Invoice PDF/XML",
+   "read_only_depends_on": "eval:doc.multi_annex_embed_enabled"
   },
   {
    "fieldname": "column_break_mjfv",

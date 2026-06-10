@@ -89,6 +89,7 @@ def _set_multi_annex_field_visibility(*, enabled: bool) -> None:
 	"""
 	_set_custom_field_hidden(SALES_INVOICE_ANNEX_TABLE_FIELD, hidden=not enabled)
 	_set_custom_field_hidden(SALES_INVOICE_EMBEDDED_DOCUMENT_FIELD, hidden=enabled)
+	_set_custom_field_read_only(SALES_INVOICE_EMBEDDED_DOCUMENT_FIELD, read_only=enabled)
 
 
 def _set_custom_field_hidden(fieldname: str, *, hidden: bool) -> None:
@@ -100,3 +101,14 @@ def _set_custom_field_hidden(fieldname: str, *, hidden: bool) -> None:
 		return
 
 	frappe.db.set_value("Custom Field", custom_field_name, "hidden", int(hidden))
+
+
+def _set_custom_field_read_only(fieldname: str, *, read_only: bool) -> None:
+	custom_field_name = frappe.db.get_value(
+		"Custom Field",
+		{"dt": "Sales Invoice", "fieldname": fieldname},
+	)
+	if not custom_field_name:
+		return
+
+	frappe.db.set_value("Custom Field", custom_field_name, "read_only", int(read_only))

@@ -21,9 +21,14 @@ from frappe.model.naming import parse_naming_series
 from frappe.utils import cstr
 from frappe.utils.data import date_diff, flt, getdate, to_markdown
 
+from eu_einvoice.annex.attachments import (
+	EInvoiceAnnexAttachment,
+	get_attachments_from_annex_table,
+	is_multi_annex_embed_enabled,
+	_log_legacy_deprecation_once,
+)
 from eu_einvoice.annex.sales_invoice import (
 	deduplicate_annex_rows,
-	migrate_embedded_document_to_annexes,
 )
 from eu_einvoice.annex.validation import validate_annex_file
 from eu_einvoice.common_codes import CommonCodeRetriever
@@ -198,10 +203,16 @@ class EInvoiceGenerator:
 		self._set_totals()
 
 	def _embed_attachment(self):
-		"""Add the embedded document to the einvoice."""
+		"""Add embedded annex documents to the e-invoice."""
+		if is_multi_annex_embed_enabled():
+			for annex in get_attachments_from_annex_table(self.invoice):
+				self._add_additional_reference_from_annex(annex)
+			return
+
 		if not self.invoice.einvoice_embedded_document:
 			return
 
+		_log_legacy_deprecation_once()
 		file = find_file_by_url(self.invoice.einvoice_embedded_document)
 
 		content = None
@@ -210,13 +221,39 @@ class EInvoiceGenerator:
 			mime_type = mimetypes.guess_type(file.file_url)[0]
 			content = as_base_64(file.get_content())
 
+		self._add_additional_reference(
+			file=file,
+			mime_type=mime_type,
+			file_name=file_name if not file.is_remote_file else None,
+			content_base64=content,
+		)
+
+	def _add_additional_reference_from_annex(self, annex: EInvoiceAnnexAttachment) -> None:
+		ref_doc = AdditionalReferencedDocument()
+		ref_doc.issuer_assigned_id = annex.issuer_assigned_id
+		if annex.content is not None:
+			ref_doc.attached_object = (annex.mime_type, annex.basename, as_base_64(annex.content))
+		else:
+			file = frappe.get_doc("File", annex.file_id)
+			ref_doc.uri_id = file.file_url
+		ref_doc.type_code = "916"
+		self.doc.trade.agreement.additional_references.add(ref_doc)
+
+	def _add_additional_reference(
+		self,
+		*,
+		file,
+		mime_type: str | None,
+		file_name: str | None,
+		content_base64: str | None,
+	) -> None:
 		ref_doc = AdditionalReferencedDocument()
 		ref_doc.issuer_assigned_id = file.name
 		if file.is_remote_file:
 			ref_doc.uri_id = file.file_url
 		else:
-			ref_doc.attached_object = (mime_type, file_name, content)
-		ref_doc.type_code = "916"  # "Related document" according to UNTDID 1001
+			ref_doc.attached_object = (mime_type, file_name, content_base64)
+		ref_doc.type_code = "916"
 		self.doc.trade.agreement.additional_references.add(ref_doc)
 
 	def _set_context(self):
@@ -828,8 +865,10 @@ def validate_doc(doc, event):
 			)
 
 	if settings.multi_annex_embed_enabled:
-		if doc.einvoice_embedded_document:
-			migrate_embedded_document_to_annexes(doc)
+		if doc.get("einvoice_embedded_document") and doc.has_value_changed(
+			"einvoice_embedded_document"
+		):
+			frappe.throw(_("Use the Embedded Documents table instead of the legacy attach field."))
 		if doc.einvoice_annexes:
 			deduplicate_annex_rows(doc)
 			for row in doc.einvoice_annexes:
